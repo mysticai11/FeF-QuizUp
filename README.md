@@ -2,6 +2,7 @@
 
 A dynamic quiz application offering various categories with an immersive learning experience, featuring modern UI, dark/light mode, and interactive elements to enhance engagement.
 
+
 ## ✨ Key Features
 - **Multiple Categories**: Entertainment & Academics (Movies, Science, GK, Aptitude, etc.)
 - **Personalization**: Avatar selection, XP-based leveling, progress tracking
@@ -24,8 +25,7 @@ A dynamic quiz application offering various categories with an immersive learnin
 
 ## 📦 Installation
 1. Clone the repository:
-   ```bash
-  git clone https://github.com/mysticai11/FeF-QuizUp.git
+   ```bash git clone https://github.com/mysticai11/FeF-QuizUp.git
   
 Open index.html in your browser and explore!
 🤝 Contributions
