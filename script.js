@@ -1,4 +1,3 @@
-// Existing variables and functions
 let currentQuestionIndex = 0;
 let score = 0;
 let questions = [];
@@ -19,6 +18,92 @@ const categories = {
     academics: ['ComputerScience', 'Science', 'GeneralKnowledge', 'Aptitude']
 };
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Theme persistence
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        const icon = document.querySelector('#darkModeToggle i');
+        if (icon) icon.className = 'fas fa-sun';
+    }
+
+    // Modify toggleDarkMode function
+    window.toggleDarkMode = () => {
+        const isDarkMode = !document.body.classList.contains('light-mode');
+        document.body.classList.toggle('light-mode');
+        const icon = document.querySelector('#darkModeToggle i');
+        if (icon) icon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('theme', isDarkMode ? 'light' : 'dark');
+    }
+
+    // Scroll to top on navigation
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    // Modified navigateTo function
+    window.navigateTo = (page) => {
+        scrollToTop();
+        switch(page) {
+            case 'home':
+                showHome();
+                break;
+            case 'leaderboard':
+                window.location.href = 'leaderboard.html';
+                break;
+        }
+    }
+
+    // Fix General Knowledge category
+    const originalFetchQuestions = window.fetchQuestions;
+    window.fetchQuestions = async (category) => {
+        if (category === 'GeneralKnowledge') {
+            category = 'G.K';
+        }
+        return originalFetchQuestions(category);
+    }
+
+    // Initialize particles.js
+    particlesJS.load('particles-js', 'particles.json', function() {
+        console.log('particles.js loaded');
+    });
+
+    // Start playing background music when the page loads
+    audio.play();
+
+    // Handle browser navigation
+    window.onpopstate = function(event) {
+        if (event.state) {
+            switch(event.state.page) {
+                case 'home':
+                    showHome();
+                    break;
+                case 'categories':
+                    showCategories();
+                    break;
+                case 'leaderboard':
+                    showLeaderboard();
+                    break;
+            }
+        }
+    };
+
+    // Add event listeners to the avatars
+    document.querySelectorAll('.avatar').forEach(avatar => {
+        avatar.addEventListener('click', () => {
+            // Remove the selected class from all avatars
+            document.querySelectorAll('.avatar').forEach(a => a.classList.remove('selected'));
+            // Add the selected class to the clicked avatar
+            avatar.classList.add('selected');
+            // Update the selectedAvatar variable
+            selectedAvatar = avatar;
+        });
+    });
+});
+
 function showAlert(message) {
     const alertElement = document.getElementById('customAlert');
     alertElement.textContent = message;
@@ -30,7 +115,7 @@ function showAlert(message) {
 
 function toggleDarkMode() {
     isDarkMode = !isDarkMode;
-    document.body.classList.toggle('light-mode', !isDarkMode);
+    document.body.classList.toggle('light-mode');
     const icon = document.querySelector('#darkModeToggle i');
     icon.className = isDarkMode ? 'fas fa-moon' : 'fas fa-sun';
     localStorage.setItem('isDarkMode', isDarkMode);
@@ -74,7 +159,9 @@ function showCategories() {
     }
     document.getElementById('welcomeContainer').classList.add('hidden');
     document.getElementById('categoryContainer').classList.remove('hidden');
-
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
+    // ...
+  
     const entertainmentGrid = document.getElementById('entertainmentGrid');
     const academicsGrid = document.getElementById('academicsGrid');
 
@@ -123,14 +210,15 @@ async function startQuiz(category) {
     const fetchSuccessful = await fetchQuestions(category);
     hideLoadingAnimation();
     if (fetchSuccessful) {
-        document.getElementById('categoryContainer').classList.add('hidden');
-        document.getElementById('quiz').classList.remove('hidden');
-        showQuestion();
+      document.getElementById('categoryContainer').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
+      showQuestion();
     } else {
-        showAlert('Failed to fetch questions. Please try again.');
-        showCategories();
+      showAlert('Failed to fetch questions. Please try again.');
+      showCategories();
     }
-}
+  }
 
 async function fetchQuestions(category) {
     let apiUrl;
@@ -160,8 +248,8 @@ async function fetchQuestions(category) {
             apiUrl = 'https://opentdb.com/api.php?amount=10&category=19&type=multiple';
             break;
         default:
-            showAlert('Category not found!');
-            return false;
+            apiUrl = 'https://opentdb.com/api.php?amount=10&category=9&type=multiple';
+            break;
     }
         
     try {
@@ -171,152 +259,164 @@ async function fetchQuestions(category) {
         }
         const data = await response.json();
         
-        // Rest of the function...
-        
-        if (category === 'HarryPotter') {
-            questions = data.slice(0, 10).map(spell => ({
-                question: `What is the effect of the spell "${spell.name}"?`,
-                answers: shuffle([
-                    spell.description,
-                    'Disarms an opponent',
-                    'Creates a shield charm',
-                    'Reduces an object to pieces'
-                ]),
-                correct: spell.description
-            }));
-        } else {
-            questions = data.results.map(question => ({
-                question: decodeHtml(question.question),
-                answers: shuffle([
-                    ...question.incorrect_answers.map(decodeHtml),
-                    decodeHtml(question.correct_answer)
-                ]),
-                correct: decodeHtml(question.correct_answer)
-            }));
+        // ...
+            // ...
+
+            if (category === 'HarryPotter') {
+                questions = data.slice(0, 10).map(spell => ({
+                    question: `What is the effect of the spell "${spell.name}"?`,
+                    answers: shuffle([
+                        spell.description,
+                        'Disarms an opponent',
+                        'Creates a shield charm',
+                        'Reduces an object to pieces'
+                    ]),
+                    correct: spell.description
+                }));
+            } else {
+                questions = data.results.map(question => ({
+                    question: decodeHtml(question.question),
+                    answers: shuffle([
+                        ...question.incorrect_answers.map(decodeHtml),
+                        decodeHtml(question.correct_answer)
+                    ]),
+                    correct: decodeHtml(question.correct_answer)
+                }));
+            }
+            
+            // Ensure valid questions
+            questions = questions.filter(q =>
+                q.question && q.correct && q.answers &&
+                q.answers.length === 4 &&
+                new Set(q.answers).size === 4
+            );
+            
+            if (questions.length < 5) {
+                throw new Error('Not enough valid questions');
+            }
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            return true;
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+            showAlert('Failed to fetch questions. Please try again.');
+            return false;
         }
-        
-        // Ensure valid questions
-        questions = questions.filter(q =>
-            q.question && q.correct && q.answers &&
-            q.answers.length === 4 &&
-            new Set(q.answers).size === 4
-        );
-        
-        if (questions.length < 5) {
-            throw new Error('Not enough valid questions');
-        }
-        
-        currentQuestionIndex = 0;
-        score = 0;
-        userAnswers = [];
-        return true;
-    } catch (error) {
-        console.error('Error fetching questions:', error);
-        showAlert('Failed to fetch questions. Please try again.');
-        return false;
-    }
-}
-
-function decodeHtml(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
-}
-
-function shuffle(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-}
-
-function showQuestion() {
-    const questionContainer = document.getElementById("questionContainer");
-    const progressBar = document.createElement('div');
-    progressBar.className = 'progress-bar';
-    progressBar.innerHTML = `<div class="progress" style="width: ${(currentQuestionIndex / questions.length) * 100}%"></div>`;
-        
-    const question = questions[currentQuestionIndex];
-        
-    questionContainer.innerHTML = `
-        ${progressBar.outerHTML}
-        <div class="question-content">
-            <h3>${question.question}</h3>
-            <ul>
-                ${question.answers.map((answer, index) => `
-                    <li>
-                        <button 
-                            class="option-button" 
-                            onclick="checkAnswer('${answer.replace(/'/g, "\\'")}')"
-                            style="animation: fadeIn 0.3s ease ${index * 0.1}s forwards">
-                            ${answer}
-                        </button>
-                    </li>`).join('')}
-            </ul>
-        </div>
-    `;
-        
-    document.getElementById("currentQuestionNumber").textContent = currentQuestionIndex + 1;
-    document.getElementById("totalQuestions").textContent = questions.length;
-}
-
-function checkAnswer(selectedAnswer) {
-    const question = questions[currentQuestionIndex];
-    userAnswers.push({ 
-        question: question.question, 
-        selected: selectedAnswer, 
-        correct: question.correct 
-    });
-        
-    const buttons = document.querySelectorAll(".option-button");
-    const isCorrect = selectedAnswer === question.correct;
-        
-    buttons.forEach(button => {
-        const buttonAnswer = button.textContent.trim();
-        if (buttonAnswer === question.correct) {
-            button.classList.add("correct");
-        } else if (buttonAnswer === selectedAnswer) {
-            button.classList.add("incorrect");
-        }
-        button.disabled = true;
-    });
-    
-    const feedbackMessage = document.getElementById("feedbackMessage");
-    feedbackMessage.textContent = isCorrect ? "Correct! Well done!" : `Incorrect. The correct answer is: ${question.correct}`;
-    feedbackMessage.className = `feedback-message ${isCorrect ? 'correct' : 'incorrect'} show`;
-    
-    // Play sound effect
-    if (isCorrect) {
-        if (!isMuted) correctSound.play();
-        score++;
-    } else {
-        if (!isMuted) incorrectSound.play();
     }
     
-    setTimeout(() => {
-        feedbackMessage.classList.remove("show");
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
+    function decodeHtml(html) {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+    
+    function shuffle(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+    }
+    
+    function showQuestion() {
+        const questionContainer = document.getElementById("questionContainer");
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = `<div class="progress" style="width: ${(currentQuestionIndex / questions.length) * 100}%"></div>`;
+            
+        const question = questions[currentQuestionIndex];
+            
+        questionContainer.innerHTML = `
+            ${progressBar.outerHTML}
+            <div class="question-content">
+                <h3>${question.question}</h3>
+                <ul>
+                    ${question.answers.map((answer, index) => `
+                        <li>
+                            <button 
+                                class="option-button" 
+                                onclick="checkAnswer('${answer.replace(/'/g, "\\'")}')"
+                                style="animation: fadeIn 0.3s ease ${index * 0.1}s forwards">
+                                ${answer}
+                            </button>
+                        </li>`).join('')}
+                </ul>
+            </div>
+        `;
+            
+        document.getElementById("currentQuestionNumber").textContent = currentQuestionIndex + 1;
+        document.getElementById("totalQuestions").textContent = questions.length;
+    }
+    
+    function checkAnswer(selectedAnswer) {
+        const question = questions[currentQuestionIndex];
+        userAnswers.push({ 
+          question: question.question, 
+          selected: selectedAnswer, 
+          correct: question.correct 
+        });
+        
+        const buttons = document.querySelectorAll(".option-button");
+        const isCorrect = selectedAnswer === question.correct;
+        
+        try {
+          buttons.forEach(button => {
+            const buttonAnswer = button.textContent.trim();
+            if (buttonAnswer === question.correct) {
+              button.classList.add("correct");
+            } else if (buttonAnswer === selectedAnswer) {
+              button.classList.add("incorrect");
+            }
+            button.disabled = true;
+          });
+          
+          const feedbackMessage = document.getElementById("feedbackMessage");
+          feedbackMessage.textContent = isCorrect ? "Correct! Well done!" : `Incorrect. The correct answer is: ${question.correct}`;
+          feedbackMessage.className = `feedback-message ${isCorrect ? 'correct' : 'incorrect'} show`;
+          
+          // Play sound effect
+          if (isCorrect) {
+            if (!isMuted) correctSound.play();
+            score++;
+          } else {
+            if (!isMuted) incorrectSound.play();
+          }
+          
+          setTimeout(() => {
+            feedbackMessage.classList.remove("show");
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+              showQuestion();
+            } else {
+              showScore();
+            }
+          }, 2000);
+        } catch (error) {
+          console.error("Error checking answer:", error);
+          // Skip to the next question if there's an error
+          currentQuestionIndex++;
+          if (currentQuestionIndex < questions.length) {
             showQuestion();
-        } else {
+          } else {
             showScore();
+          }
         }
-    }, 2000);
-    }
+      }
     
     function showScore() {
         document.getElementById('quiz').classList.add('hidden');
         document.getElementById('scoreContainer').classList.remove('hidden');
-                    
+                        
         const finalScore = document.getElementById("finalScore");
         const percentage = (score / questions.length) * 100;
         finalScore.innerHTML = `
             <h3>Your Final Score: ${score} out of ${questions.length}</h3>
             <p>Percentage: ${percentage.toFixed(1)}%</p>
         `;
-                    
+                        
         updatePlayerProgress();
         updateLeaderboard();
         displayLevelInfo();
@@ -325,12 +425,12 @@ function checkAnswer(selectedAnswer) {
     function updatePlayerProgress() {
         const xpGained = score * 10; // 10 XP per correct answer
         playerXP += xpGained;
-                    
+                        
         while (playerXP >= playerLevel * 100) { // Level up when XP reaches level * 100
             playerXP -= playerLevel * 100;
             playerLevel++;
         }
-                    
+                        
         localStorage.setItem('playerLevel', playerLevel);
         localStorage.setItem('playerXP', playerXP);
     }
@@ -356,7 +456,7 @@ function checkAnswer(selectedAnswer) {
             level: playerLevel,
             avatar: selectedAvatar.src
         };
-                    
+                        
         leaderboard.push(newEntry);
         leaderboard.sort((a, b) => (b.score/b.total) - (a.score/a.total));
         leaderboard = leaderboard.slice(0, 10); // Keep only top 10
@@ -366,8 +466,9 @@ function checkAnswer(selectedAnswer) {
     function showLeaderboard() {
         document.getElementById('scoreContainer').classList.add('hidden');
         document.getElementById('leaderboardContainer').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
         displayLeaderboard();
-    }
+      }
     
     function displayLeaderboard() {
         const leaderboardList = document.getElementById("leaderboardList");
@@ -377,11 +478,6 @@ function checkAnswer(selectedAnswer) {
             <span>${entry.score}/${entry.total} (${entry.percentage}%) - Level ${entry.level}</span>
           </div>
         `).join('');
-    
-        // Display the selected avatar
-        document.getElementById('selected-avatar').innerHTML = `
-          <img src="${selectedAvatar.src}" alt="Avatar" class="selected-avatar">
-        `;
     }
     
     function clearLeaderboard() {
@@ -415,7 +511,9 @@ function checkAnswer(selectedAnswer) {
     function reviewAnswers() {
         document.getElementById('scoreContainer').classList.add('hidden');
         document.getElementById('reviewContainer').classList.remove('hidden');
-                    
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
+        // ...
+               
         const reviewList = document.getElementById('reviewList');
         reviewList.innerHTML = userAnswers.map((answer, index) => `
             <div class="review-item ${answer.selected === answer.correct ? 'correct' : 'incorrect'}">
@@ -455,7 +553,7 @@ function checkAnswer(selectedAnswer) {
             loadingOverlay.remove();
         }
     }
-    
+       
     document.addEventListener('DOMContentLoaded', () => {
         showHome();
                     
