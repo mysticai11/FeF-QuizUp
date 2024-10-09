@@ -145,6 +145,8 @@ function showHome() {
     document.getElementById('scoreContainer').classList.add('hidden');
     document.getElementById('reviewContainer').classList.add('hidden');
     document.getElementById('leaderboardContainer').classList.add('hidden');
+    showSection('welcomeContainer'); 
+
 }
 
 function showCategories() {
@@ -157,6 +159,7 @@ function showCategories() {
       showAlert('Please select an avatar before starting the quiz!');
       return;
     }
+    showSection('categoryContainer');
     document.getElementById('welcomeContainer').classList.add('hidden');
     document.getElementById('categoryContainer').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
@@ -250,6 +253,7 @@ async function fetchQuestions(category) {
         default:
             apiUrl = 'https://opentdb.com/api.php?amount=10&category=9&type=multiple';
             break;
+    
     }
         
     try {
@@ -409,7 +413,7 @@ async function fetchQuestions(category) {
     function showScore() {
         document.getElementById('quiz').classList.add('hidden');
         document.getElementById('scoreContainer').classList.remove('hidden');
-                        
+        showSection('scoreContainer'); 
         const finalScore = document.getElementById("finalScore");
         const percentage = (score / questions.length) * 100;
         finalScore.innerHTML = `
@@ -468,6 +472,19 @@ async function fetchQuestions(category) {
         document.getElementById('leaderboardContainer').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
         displayLeaderboard();
+        showSection('leaderboardContainer');
+      }
+      function showSection(sectionId) {
+        // Hide all quiz sections
+        document.getElementById('welcomeContainer').classList.add('hidden');
+        document.getElementById('categoryContainer').classList.add('hidden');
+        document.getElementById('quiz').classList.add('hidden');
+        document.getElementById('scoreContainer').classList.add('hidden');
+        document.getElementById('reviewContainer').classList.add('hidden');
+        document.getElementById('leaderboardContainer').classList.add('hidden');
+      
+        // Show the specified section
+        document.getElementById(sectionId).classList.remove('hidden');
       }
     
     function displayLeaderboard() {
@@ -511,6 +528,7 @@ async function fetchQuestions(category) {
     function reviewAnswers() {
         document.getElementById('scoreContainer').classList.add('hidden');
         document.getElementById('reviewContainer').classList.remove('hidden');
+        showSection('reviewContainer');
         window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
         // ...
                
@@ -532,6 +550,7 @@ async function fetchQuestions(category) {
     }
     
     function playAgain() {
+        showCategories();
         currentQuestionIndex = 0;
         score = 0;
         questions = [];
