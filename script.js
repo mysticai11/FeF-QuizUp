@@ -10,8 +10,11 @@ let playerXP = parseInt(localStorage.getItem('playerXP')) || 0;
 let audio = new Audio('path/to/your/background-music.mp3');
 let correctSound = new Audio('media/correct-sound.mp3');
 let incorrectSound = new Audio('media/incorrect-sound.mp3');
-let selectedAvatar = null;
 audio.loop = true;
+let selectedAvatar = null;
+
+
+
 
 const categories = {
     entertainment: ['Movies', 'Anime', 'HarryPotter', 'Comics'],
@@ -65,11 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return originalFetchQuestions(category);
     }
-
-    // Initialize particles.js
-    particlesJS.load('particles-js', 'particles.json', function() {
-        console.log('particles.js loaded');
-    });
 
     // Start playing background music when the page loads
     audio.play();
@@ -129,14 +127,24 @@ function toggleDarkMode() {
 }
 
 function toggleMute() {
-    isMuted = !isMuted;
-    audio.muted = isMuted;
-    correctSound.muted = isMuted;
-    incorrectSound.muted = isMuted;
+    isMuted = !isMuted; // Toggle the isMuted state
+    audio.muted = isMuted; // Update the audio muted state
+    correctSound.muted = isMuted; // Update the correct sound muted state
+    incorrectSound.muted = isMuted; // Update the incorrect sound muted state
     const icon = document.querySelector('#muteToggle i');
-    icon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-    localStorage.setItem('isMuted', isMuted);
+    icon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; // Update the mute toggle icon
+    localStorage.setItem('isMuted', isMuted); // Store the isMuted state in local storage
 }
+
+// Set the initial audio state
+document.addEventListener('DOMContentLoaded', () => {
+    audio.muted = isMuted; // Set the initial audio state
+    const icon = document.querySelector('#muteToggle i');
+    icon.className = isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; // Update the mute toggle icon
+    if (isMuted) {
+        toggleMute(); // Toggle the mute state if it's initially muted
+    }
+});
 
 function showHome() {
     document.getElementById('welcomeContainer').classList.remove('hidden');
@@ -330,85 +338,99 @@ async function fetchQuestions(category) {
         const progressBar = document.createElement('div');
         progressBar.className = 'progress-bar';
         progressBar.innerHTML = `<div class="progress" style="width: ${(currentQuestionIndex / questions.length) * 100}%"></div>`;
-            
+    
         const question = questions[currentQuestionIndex];
-            
+    
+        // Escape the question and answers to prevent syntax errors
+        const escapedQuestion = escapeHtml(question.question);
+        const escapedAnswers = question.answers.map(answer => escapeHtml(answer));
+    
         questionContainer.innerHTML = `
             ${progressBar.outerHTML}
             <div class="question-content">
-                <h3>${question.question}</h3>
+                <h3>${escapedQuestion}</h3>
                 <ul>
-                    ${question.answers.map((answer, index) => `
+                    ${escapedAnswers.map((answer, index) => `
                         <li>
-                            <button 
-                                class="option-button" 
-                                onclick="checkAnswer('${answer.replace(/'/g, "\\'")}')"
-                                style="animation: fadeIn 0.3s ease ${index * 0.1}s forwards">
+                            <button class="option-button" data-answer="${answer}">
                                 ${answer}
                             </button>
                         </li>`).join('')}
                 </ul>
             </div>
         `;
-            
+    
+        const buttons = questionContainer.querySelectorAll('.option-button');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                checkAnswer(button.dataset.answer);
+            });
+        });
+    
         document.getElementById("currentQuestionNumber").textContent = currentQuestionIndex + 1;
         document.getElementById("totalQuestions").textContent = questions.length;
     }
     
+    // Function to escape HTML special characters
+    function escapeHtml(html) {
+        const text = document.createElement("textarea");
+        text.innerHTML = html;
+        return text.value;
+    }
     function checkAnswer(selectedAnswer) {
         const question = questions[currentQuestionIndex];
         userAnswers.push({ 
-          question: question.question, 
-          selected: selectedAnswer, 
-          correct: question.correct 
+            question: question.question, 
+            selected: selectedAnswer, 
+            correct: question.correct 
         });
-        
+    
         const buttons = document.querySelectorAll(".option-button");
         const isCorrect = selectedAnswer === question.correct;
-        
+    
         try {
-          buttons.forEach(button => {
-            const buttonAnswer = button.textContent.trim();
-            if (buttonAnswer === question.correct) {
-              button.classList.add("correct");
-            } else if (buttonAnswer === selectedAnswer) {
-              button.classList.add("incorrect");
+            buttons.forEach(button => {
+                const buttonAnswer = button.textContent.trim();
+                if (buttonAnswer === question.correct) {
+                    button.classList.add("correct");
+                } else if (buttonAnswer === selectedAnswer) {
+                    button.classList.add("incorrect");
+                }
+                button.disabled = true; // Disable buttons after answering
+            });
+    
+            const feedbackMessage = document.getElementById("feedbackMessage");
+            feedbackMessage.textContent = isCorrect ? "Correct! Well done!" : `Incorrect. The correct answer is: ${question.correct}`;
+            feedbackMessage.className = `feedback-message ${isCorrect ? 'correct' : 'incorrect'} show`;
+    
+            // Play sound effect
+            if (isCorrect) {
+                if (!isMuted) correctSound.play();
+                score++;
+            } else {
+                if (!isMuted) incorrectSound.play();
             }
-            button.disabled = true;
-          });
-          
-          const feedbackMessage = document.getElementById("feedbackMessage");
-          feedbackMessage.textContent = isCorrect ? "Correct! Well done!" : `Incorrect. The correct answer is: ${question.correct}`;
-          feedbackMessage.className = `feedback-message ${isCorrect ? 'correct' : 'incorrect'} show`;
-          
-          // Play sound effect
-          if (isCorrect) {
-            if (!isMuted) correctSound.play();
-            score++;
-          } else {
-            if (!isMuted) incorrectSound.play();
-          }
-          
-          setTimeout(() => {
-            feedbackMessage.classList.remove("show");
+    
+            setTimeout(() => {
+                feedbackMessage.classList.remove("show");
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    showQuestion();
+                } else {
+                    showScore();
+                }
+            }, 2000);
+        } catch (error) {
+            console.error("Error checking answer:", error);
+            // Skip to the next question if there's an error
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
-              showQuestion();
+                showQuestion();
             } else {
-              showScore();
+                showScore();
             }
-          }, 2000);
-        } catch (error) {
-          console.error("Error checking answer:", error);
-          // Skip to the next question if there's an error
-          currentQuestionIndex++;
-          if (currentQuestionIndex < questions.length) {
-            showQuestion();
-          } else {
-            showScore();
-          }
         }
-      }
+    }
     
     function showScore() {
         document.getElementById('quiz').classList.add('hidden');
@@ -471,7 +493,7 @@ async function fetchQuestions(category) {
         document.getElementById('scoreContainer').classList.add('hidden');
         document.getElementById('leaderboardContainer').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
-        displayLeaderboard();
+         displayLeaderboard();
         showSection('leaderboardContainer');
       }
       function showSection(sectionId) {
@@ -487,15 +509,21 @@ async function fetchQuestions(category) {
         document.getElementById(sectionId).classList.remove('hidden');
       }
     
-    function displayLeaderboard() {
-        const leaderboardList = document.getElementById("leaderboardList");
-        leaderboardList.innerHTML = leaderboard.map((entry, index) => `
-          <div class="leaderboard-entry" style="animation: fadeIn 0.3s ease ${index * 0.1}s forwards">
-            <span>${index + 1}. ${entry.name} <img src="${entry.avatar}" alt="Avatar" class="leaderboard-avatar"></span>
-            <span>${entry.score}/${entry.total} (${entry.percentage}%) - Level ${entry.level}</span>
-          </div>
-        `).join('');
-    }
+      function displayLeaderboard() {
+        const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+        const leaderboardList = document.getElementById('leaderboardList');
+        
+        if (leaderboard.length > 0) {
+          leaderboardList.innerHTML = leaderboard.map((entry, index) => `
+            <div class="leaderboard-entry" style="animation: fadeIn 0.3s ease ${index * 0.1}s forwards">
+              <span>${index + 1}. ${entry.name} <img src="${entry.avatar}" alt="Avatar" class="leaderboard-avatar"></span>
+              <span>${entry.score}/${entry.total} (${entry.percentage}%) - Level ${entry.level}</span>
+            </div>
+          `).join('');
+        } else {
+          leaderboardList.innerHTML = '<p>No leaderboard entries found.</p>';
+        }
+      }
     
     function clearLeaderboard() {
         const confirmDialog = document.createElement('div');
@@ -527,6 +555,7 @@ async function fetchQuestions(category) {
     
     function reviewAnswers() {
         document.getElementById('scoreContainer').classList.add('hidden');
+         document.getElementById('leaderboardContainer').classList.add('hidden');
         document.getElementById('reviewContainer').classList.remove('hidden');
         showSection('reviewContainer');
         window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the page
@@ -617,14 +646,28 @@ async function fetchQuestions(category) {
         }
     }
     
-    // Add event listeners to the avatars
     document.querySelectorAll('.avatar').forEach(avatar => {
         avatar.addEventListener('click', () => {
-            // Remove the selected class from all avatars
-            document.querySelectorAll('.avatar').forEach(a => a.classList.remove('selected'));
-            // Add the selected class to the clicked avatar
-            avatar.classList.add('selected');
-            // Update the selectedAvatar variable
-            selectedAvatar = avatar;
+            if (selectedAvatar === avatar) {
+                // Deselect if clicking the same avatar
+                selectedAvatar = null;
+                document.querySelectorAll('.avatar').forEach(a => {
+                    a.src = a.dataset.neutral;
+                    a.classList.remove('chosen', 'not-chosen');
+                });
+            } else {
+                selectedAvatar = avatar;
+                document.querySelectorAll('.avatar').forEach(a => {
+                    if (a === selectedAvatar) {
+                        a.src = a.dataset.chosen;
+                        a.classList.add('chosen');
+                        a.classList.remove('not-chosen');
+                    } else {
+                        a.src = a.dataset.notChosen;
+                        a.classList.add('not-chosen');
+                        a.classList.remove('chosen');
+                    }
+                });
+            }
         });
     });
