@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 </head>
 <body>
+    
     <div id="particles-js"></div>
 
     <div class="container">
@@ -31,8 +32,14 @@
         <div id="welcomeContainer" class="quiz-container" style="margin: 0 auto; max-width: 800px; width: 90%; padding: 20px;">
             <h1>𝐶𝒉𝑜𝑜𝑠𝑒 𝑌𝑜𝑢𝑟 𝑸𝑢𝑖𝑧 𝐻𝑒𝑟𝑜 𝑡𝑜 𝐵𝑒𝑔𝑖𝑛 𝑡𝒉𝑒 𝐽𝑜𝑢𝑟𝑛𝑒𝑦!</h1>
             <div class="avatar-selection">
-                <img src="media/sticker3.webp" alt="Male Avatar" class="avatar" gender="male" id="male-avatar">
-                <img src="media/sticker4.webp" alt="Female Avatar" class="avatar" gender="female" id="female-avatar">
+                <img src="media/male_neutral.png" id="male-avatar" class="avatar" 
+                     data-neutral="media/male_neutral.png" 
+                     data-chosen="media/male_chosen.png" 
+                     data-not-chosen="media/male_not_chosen.png" alt="Male Avatar">
+                <img src="media/female_neutral.png" id="female-avatar" class="avatar" 
+                     data-neutral="media/female_neutral.png" 
+                     data-chosen="media/female_chosen.png" 
+                     data-not-chosen="media/female_not_chosen.png" alt="Female Avatar">
             </div>
             <input type="text" id="playerName" placeholder="Enter your name" required style="width: 80%; padding: 12px; margin: 20px auto; border: 2px solid var(--card-bg); border-radius: 8px; background-color: var(--background-color); color: var(--text-color);">
             <button onclick="showCategories()">Start Quiz</button>
@@ -60,7 +67,7 @@
 
         <div id="scoreContainer" class="quiz-container hidden">
             <h2>Quiz Completed!</h2>
-            <img src="media/jeonzflwr.gif" alt="Completion" class="completion-gif">
+            <img src="media/wave.gif" alt="Completion" class="completion-gif">
             <div id="finalScore"></div>
             <div id="levelInfo"></div>
             <div class="button-group">
@@ -80,6 +87,7 @@
         <div id="reviewContainer" class="quiz-container hidden">
             <h2>Review Your Answers</h2>
             <div id="reviewList"></div>
+            <button onclick="showLeaderboard()">View Leaderboard</button>
             <button onclick="playAgain()">Play Again</button>
         </div>
 <button id="reviewAnswersButton" class="hidden" onclick="reviewAnswers()">Review Answers</button>
@@ -89,10 +97,10 @@
               <div class="footer-section">
                 <h3>Follow me on social media</h3>
                 <div class="social-icons">
-                  <a href="https://www.instagram.com/your_insta_username/" target="_blank">
+                  <a href="https://www.instagram.com/mystic__ak/" target="_blank">
                     <i class="fab fa-instagram"></i>
                   </a>
-                  <a href="https://github.com/your_github_username" target="_blank">
+                  <a href="https://github.com/mysticai11" target="_blank">
                     <i class="fab fa-github"></i>
                   </a>
                   <a href="https://www.linkedin.com/in/your_linkedin_username/" target="_blank">
